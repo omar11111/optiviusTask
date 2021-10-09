@@ -10,12 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-use Spatie\Translatable\HasTranslations;
 class ArticleController extends Controller
 {
     use ApiResponse;
-    use HasTranslations;
-    public $translatable = ['title','content'];
+  
 
     
     private  function articleValidate($request){
@@ -24,7 +22,7 @@ class ArticleController extends Controller
             'title_ar'  => 'required|string',
             'content_en' => 'required|string',
             'content_ar' => 'required|string',
-            'user_id' => 'required|exists:users,id',
+            
            
              
         ];
@@ -43,12 +41,22 @@ class ArticleController extends Controller
           return  $this->apiResponse(0,$validator->errors()->first(),$validator->errors());
         }
 
-        $article =new Article();
-        $article->title=json_encode(['en'=>$request->title_en,'ar'=>$request->title_ar]);
-        $article->content=json_encode(['en'=>$request->content_en,'ar'=>$request->content_ar]);
-        $article->user_id=$request->user_id;
-        $article->save();
-        return  $this->apiResponse(1,'Articl Created Successfully',$article);
+      $request->merge(['title'=>
+      [
+          'en'=>$request->title_en,
+          'ar'=>$request->title_ar
+      ],
+      'content'=>
+      [
+
+            'en'=>$request->content_en,
+            'ar'=>$request->content_ar
+      ]
+      ]
+    );
+      $article=$request->user()->articles()->create($request->all());
+       
+      return  $this->apiResponse(1,'Articl Created Successfully',$article);
        
     }
 
@@ -57,12 +65,27 @@ class ArticleController extends Controller
     public function articleUpdate(Request $request ,$id)
     {
         
-        $article=article::findOrFail($id);
-       
+        $article=article::find($id);
+    
         if ($article) {
 
+            $request->merge(['title'=>
+            [
+                'en'=>$request->title_en??$article->getTranslation('title','en'),
+                'ar'=>$request->title_ar??$article->getTranslation('title','ar')
+            ],
+            'content'=>
+            [
+                  'en'=>$request->content_en??$article->getTranslation('content','en'),
+                  'ar'=>$request->content_ar??$article->getTranslation('content','ar')
+            ]
+            ]
+          );
+
             $article->update($request->all());
-            $article->save();
+            
+         
+          
             return  $this->apiResponse(1,'Articl updated Successfully',$article);
 
         }else {
@@ -80,7 +103,7 @@ class ArticleController extends Controller
 {
    
     
-        $article = Article::findOrFail($id);
+        $article = Article::find($id);
         // $path = 'adminlte/images/'.$record->image;
       
         // Storage::disk('public')->delete('adminlte\img\\'.$record->photo);

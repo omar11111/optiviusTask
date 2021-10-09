@@ -28,7 +28,8 @@ Route::post('login-page',[AuthController::class,'loginPage']);
 Route::middleware('auth:api')->group(function () {
     //posts and favourite posts
     Route::post('article-create',[ArticleController::class,'articleCreate']);
-    Route::post('article-update/{id}',[ArticleController::class,'articleUpdate']);
-    Route::post('article-delete/{id}',[ArticleController::class,'articleDelete']);
+    Route::put('article-update/{id}',[ArticleController::class,'articleUpdate']);
+    Route::delete('article-delete/{id}',[ArticleController::class,'articleDelete']);
     Route::get('profile',[AuthController::class,'profile']);
+   
 });
